@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "4ddocker/lab1:${env.BUILD_NUMBER}"
         IMAGE_LATEST = "4ddocker/lab1:latest"
-        LOCAL_DATA_PATH = "C:\\DopEdu\\ML_ITMO\\DevOpsLab\\Lab1"
+        LOCAL_DATA_PATH = "C:\\DopEdu\\ML_ITMO\\DevOps_BigFiles"
     }
 
     stages {
