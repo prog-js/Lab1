@@ -4,7 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = "4ddocker/lab1:${env.BUILD_NUMBER}"
         IMAGE_LATEST = "4ddocker/lab1:latest"
-        LOCAL_DATA_PATH = "C:\\DopEdu\\ML_ITMO\\DevOps_BigFiles"
+        LOCAL_DATA_PATH = 'C:\\DopEdu\\ML_ITMO\\DevOpsLab\\Lab1'
+        DOCKER_HUB_CRED = 'docker'
     }
 
     stages {
@@ -18,20 +19,12 @@ pipeline {
 
         stage('Copy Large Files') {
             steps {
-                echo '📁 Копирование больших файлов (данные и модель) из локальной папки...'
+                echo '📁 Копирование больших файлов из локальной папки...'
                 bat """
                     if not exist "data" mkdir data
-                    if exist "${LOCAL_DATA_PATH}\\data\\data_graduates_university_specialty_124_v20250709.csv" (
-                        copy "${LOCAL_DATA_PATH}\\data\\data_graduates_university_specialty_124_v20250709.csv" data\\
-                    ) else (
-                        echo "CSV file not found, skipping"
-                    )
+                    if exist "${LOCAL_DATA_PATH}\\data\\*.csv" copy "${LOCAL_DATA_PATH}\\data\\*.csv" data\\
                     if not exist "models" mkdir models
-                    if exist "${LOCAL_DATA_PATH}\\models\\*.pkl" (
-                        copy "${LOCAL_DATA_PATH}\\models\\*.pkl" models\\
-                    ) else (
-                        echo "Model files not found, skipping"
-                    )
+                    if exist "${LOCAL_DATA_PATH}\\models\\*.pkl" copy "${LOCAL_DATA_PATH}\\models\\*.pkl" models\\
                 """
                 echo '✅ Большие файлы скопированы'
             }
@@ -57,6 +50,18 @@ pipeline {
                     docker rm test-container-${env.BUILD_NUMBER}
                 """
                 echo '✅ Контейнер успешно протестирован'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                script {
+                    docker.withRegistry('', DOCKER_HUB_CRED) {
+                        docker.image("4ddocker/lab1:${env.BUILD_NUMBER}").push()
+                        docker.image("4ddocker/lab1:latest").push()
+                    }
+                }
+                echo '✅ Образ опубликован на Docker Hub'
             }
         }
     }
